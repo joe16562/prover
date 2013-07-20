@@ -8,7 +8,6 @@ SOURCES += main.cpp \
     fol/primitive_logic_types.cpp \
     system/parser.cpp \
     murmurhash/murmurhash.cpp \
-    fol/symbol_table.cpp \
     system/prover.cpp \
     fol/clausification.cpp
 
@@ -19,8 +18,10 @@ HEADERS += \
     fol/utilities.hpp \
     system/parser.hpp \
     murmurhash/murmurhash.hpp \
-    fol/symbol_table.hpp \
     system/prover.hpp \
     fol/clausification.hpp
 
 QMAKE_CXXFLAGS += -std=c++11
+
+OTHER_FILES += \
+    fol/grammar.yy

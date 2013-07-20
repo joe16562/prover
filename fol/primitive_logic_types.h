@@ -30,22 +30,33 @@ namespace fol{
 struct child;
 
 /**********************************************************
+ *  The basic types are represented by these arrays - the
+ *  type of a node is determined from the first child in
+ *  the array - similar to inheritance, but allows for
+ *  compact representation of terms, etc which have a
+ *  variable length - (so it avoids an extra layer of
+ *  pointer indirection and confusion, but its still not
+ *  ideal)
+ *********************************************************/
+
+typedef child formula[2];
+typedef child* predicate;
+typedef child* function;
+typedef child quantified_formula[3];
+typedef child connective[3];
+typedef int constant ;
+typedef int variable;
+
+/**********************************************************
  *  A descriptor provides a unique reference to term/etc,
  *  while the other types only represent instances
  *********************************************************/
-
-typedef formula child[1];
-typedef predicate child[];
-typedef function child[];
-typedef quantified_formula child[2];
-typedef connective child[2];
-typedef constant child[1];
-typedef variable child[1];
 
 struct descriptor;
 
 typedef union {
     child* chd;
+    /*
     formula* frm;
     predicate* prd;
     quantified_formula* qf;
@@ -54,11 +65,12 @@ typedef union {
     constant* con;
     variable* var;
     descriptor* des;
+    */
 } node_ptr;
 
 /**********************************************************
  * Identifies the type of a node - that is, the type of the
- * node pointed to by that pointer
+ * node which owns the pointer
  *********************************************************/
 enum node_type : uintptr_t{
 
@@ -71,11 +83,10 @@ enum node_type : uintptr_t{
     CONSTANT = 1,
     VARIABLE = 2,
     FORMULA = 3,
-    SHARED_TERM_BANK_NODE = 3,
 
     NEGATED_FORMULA = (1 << 2) + FORMULA,
     PREDICATE       = (2 << 2) + FORMULA,
-    CONNNECTIVE_OR  = (3 << 2) + FORMULA,
+    CONNECTIVE_OR  = (3 << 2) + FORMULA,
     CONNECTIVE_AND  = (4 << 2) + FORMULA,
     CONNECTIVE_IMP  = (5 << 2) + FORMULA,
     CONNECTIVE_IFF  = (6 << 2) + FORMULA,
@@ -92,11 +103,32 @@ const uintptr_t FORMULA_MASK = 0x3;
  *  and management
  *********************************************************/
 struct child {
-    node_ptr child_ptr;
-    inline node_type getType();
+    union{
+        child* next;
+        descriptor* des;
+    } pointer_union;
+
+    inline node_type getType(){
+        node_type t = ((uintptr_t)pointer_union.des) & FORMULA;
+        return (t != 3) ? t : (node_type)pointer_union.next;
+    }
+
     inline void setType(node_type t);
-    inline node_ptr getPointer();
-    inline uint getArrity();
+
+    inline child* getSubFormula(){
+        return pointer_union.next;}
+
+    inline child* getSubTerm(){
+        return (child*)
+                (((uintptr_t)pointer_union.next) & ~FORMULA_MASK);}
+
+    inline descriptor* getDescriptor(){
+        return (descriptor*)
+                (((uintptr_t)pointer_union.des) & ~FORMULA_MASK);}
+
+    inline unsigned int getArrity(){
+            return (uintptr_t)pointer_union.next;}
+
 };
 
 /**********************************************************
@@ -109,23 +141,22 @@ struct descriptor {
     uint arrity;
 
     descriptor(std::string& s);
-    descriptor(std::string& s, int i);
+    descriptor(std::string& s, unsigned int i);
 };
 
-child* new_function(descriptor* d, int i, child** c );
-child* new_function(descriptor* d, child** c );
+child* new_function(const descriptor* d, unsigned int i, const child** c );
+child* new_function(const descriptor* d, const child** c );
 
-child* new_predicate(descriptor* d, child** c );
-child* new_predicate(descriptor* d, int i, child** c );
+child* new_predicate(const descriptor* d, const child** c );
+child* new_predicate(const descriptor* d, unsigned int i, const child** c );
 
-child* new_constant(descriptor* d);
-child* new_variable(descriptor* d);
+child* new_constant(const descriptor* d);
+child* new_variable(const descriptor* d);
 
-child* new_negated_formula(child* f);
-child* new_predicate();
-child* new_connective(child* f, node_type t,child* f);
-child* new_quantified(node_type t, descriptor* d, child* f);
-child* new_equational_lit(child* lt, node_type t, child* rt);
+child* new_negated_formula(const child* f);
+child* new_connective(const child* f, node_type t,const child* f);
+child* new_quantified(node_type t, const descriptor* d, const child* f);
+child* new_equational_lit(const child* lt, node_type t, const child* rt);
 
 }//END Namesplace fol
 

@@ -15,21 +15,23 @@
 #include "../fol/primitive_logic_types.h"
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <unordered_map>
 
+typedef std::unordered_map<std::string,descritor*> SymbolTable;
 class parser
 {
     using namespace fol;
 
     SharedTermBank& shared_term_bank;
-    std::unordered_map<std::string,descritor*> constants;
-    std::unordered_map<std::string,descritor*> variables;
-    std::vector<ast_node*>& formulae;
+    SymbolTable constants;
+    SymbolTable variables;
+    std::vector<child*>& formulae;
     std::istream& input;
 
 public:
-    parser(SharedTermBank& shr, SymbolTable& sym, std::vector<ast_node*>& frm,
+    parser(SharedTermBank& shr, SymbolTable& variables, SymbolTable& constants,
            const char* problem_file);
     void parse();
 };

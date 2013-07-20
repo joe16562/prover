@@ -45,7 +45,7 @@ for_each_node(child* r){
         f(r, LAST);
         break;
 
-    case CONNNECTIVE_OR:
+    case CONNECTIVE_OR:
     case CONNECTIVE_AND:
     case CONNECTIVE_IMP:
     case CONNECTIVE_IFF:

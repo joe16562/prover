@@ -22,7 +22,7 @@
 namespace fol {
 //  a clause is simply a vector of predicates and equality
 //  literals, potentailly negated
-typedef clause std::vector<ast_node*>;
+typedef std::vector<child*> clause;
 
 void clausify(std::vector<ast_node*>& f,std::vector<clause>& c, SymbolTable& sym);
 

@@ -11,26 +11,27 @@
  *********************************************************/
 
 #include "../fol/shared_term_bank.h"
-#include "../fol/symbol_table.hpp"
 #include "../fol/clausification.hpp"
 #include "../fol/primitive_logic_types.h"
 
-#include <istream>
-#include <fstream>
+#include <iostream>
+#include <string>
+#include <unordered_map>
 
 class parser
 {
     using namespace fol;
 
-    SharedTermBank& m_shr;
-    SymbolTable& m_sym;
-    std::vector<ast_node*>& m_frm;
-    std::istream& m_is;
+    SharedTermBank& shared_term_bank;
+    std::unordered_map<std::string,descritor*> constants;
+    std::unordered_map<std::string,descritor*> variables;
+    std::vector<ast_node*>& formulae;
+    std::istream& input;
 
 public:
     parser(SharedTermBank& shr, SymbolTable& sym, std::vector<ast_node*>& frm,
            const char* problem_file);
-    void operator()();
+    void parse();
 };
 
 #endif // PARSER_HPP

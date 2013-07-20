@@ -1,7 +1,7 @@
 #ifndef SHARED_TERM_BANK_H
 #define SHARED_TERM_BANK_H
 
-/*********************************************************
+/***********************************************************
  *  Author:   Joseph Lawrie
  *  Date:     16 June 2013
  *
@@ -18,27 +18,38 @@
  *  Similar structures are found in the provers
  *  Vampire and E
  *
+ *  Notes: This structure is used ONLY to ORGANISE the
+ *  sharing of term nodes (functions and predicates,etc)
+ *  It returns completely valid syntax trees, EXCEPT that
+ *  term pointers may point to the same node as other term
+ *  pointers - this is what is meant by 'sharing'
  *
- *  Notes: Every term returned by the term bank is either a
- *  pointer to a shared term or an array of such pointers
- *  (other terms may be abstract syntax trees)
+ *  The memory management of the new pointer is the
+ *  responsibility of this structure.
  *
- ***********************************************/
+ **********************************************************/
+
+#include <unordered_map>
 
 #include "primitive_logic_types.h"
 #include "utilities.hpp"
 
-#include <map>
-
 namespace fol{
+
+class TermHasher;
+class TermEqualityPredicate;
 
 class SharedTermBank
 {
-    std::map<ast_node*, ast_node*> termTree;
+    // Could be another container - rehashing is a performance problem
+    // but so is lookup
+    std::unordered_map<child*, child*, TermHasher, TermEqualityPredicate> lookup_table;
 
 public:
-    ast_node* insert(term*);
-    ast_node* search(term*);
+    //  Careful! Don't delete 'term'
+    //  after inserting it
+    descriptor* insert(child* term);
+    descriptor* search(child* term);
 
     SharedTermBank();
     ~SharedTermBank();

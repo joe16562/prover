@@ -8,7 +8,8 @@
 #include "../fol/clausification.hpp"
 
 #include <unordered_set>
-#include
+#include <queue>
+
 
 using namespace fol;
 

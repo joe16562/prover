@@ -4,39 +4,63 @@
 /**********************************************************
  *  Author:   Joseph Lawrie 16562@faith.sa.edu.au
  *  Date:     16 June 2013
+ *  Modified: 20 July 2013
  *
  *  This file contains defintions for the basic
  *  structures used throughout the prover
  *
- *  A generic formula is represented by an
- *  abstract syntax tree. Each node inherits from
- *  node_type, which encodes the type of node and
- *  a descriptor of the node for term nodes
+ *  A generic first order formula is represented by an
+ *  abstract syntax tree of "child" objects. Each node is
+ *  an array of child objects, which manage the use of a
+ *  union - which may contain an enum and a pointer ORed
+ *  together (be careful).
  *
  *********************************************************/
 
 #include <cstdint>
 
+/**********************************************************
+ *  This namespace contains low level types and function
+ *  for manipulating logical symbols, etc. It also avoids
+ *  some clashes with std
+ *********************************************************/
+
 namespace fol{
 
-struct formula;
-struct predicate;
-struct term;
-struct function;
-struct variable;
-struct constant;
+struct child;
 
 /**********************************************************
  *  A descriptor provides a unique reference to term/etc,
  *  while the other types only represent instances
  *********************************************************/
+
+typedef formula child[1];
+typedef predicate child[];
+typedef function child[];
+typedef quantified_formula child[2];
+typedef connective child[2];
+typedef constant child[1];
+typedef variable child[1];
+
 struct descriptor;
-struct term_descriptor;
+
+typedef union {
+    child* chd;
+    formula* frm;
+    predicate* prd;
+    quantified_formula* qf;
+    connective* cnv;
+    function* fun;
+    constant* con;
+    variable* var;
+    descriptor* des;
+} node_ptr;
 
 /**********************************************************
- * Identifies the type of a node
+ * Identifies the type of a node - that is, the type of the
+ * node pointed to by that pointer
  *********************************************************/
-enum ast_node_type : uinttpr_t{
+enum node_type : uintptr_t{
 
     /******************************************************
      * The type must be known from two least significant
@@ -47,8 +71,8 @@ enum ast_node_type : uinttpr_t{
     CONSTANT = 1,
     VARIABLE = 2,
     FORMULA = 3,
+    SHARED_TERM_BANK_NODE = 3,
 
-    //why start not from 0?
     NEGATED_FORMULA = (1 << 2) + FORMULA,
     PREDICATE       = (2 << 2) + FORMULA,
     CONNNECTIVE_OR  = (3 << 2) + FORMULA,
@@ -57,129 +81,51 @@ enum ast_node_type : uinttpr_t{
     CONNECTIVE_IFF  = (6 << 2) + FORMULA,
     QUANTIFIER_UNI  = (7 << 2) + FORMULA,
     QUANTIFIER_EXI  = (8 << 2) + FORMULA,
-    EQUATIONAL_LIT  = (9 << 2) + FORMULA
+    EQUATIONAL_LIT_POS  = (9 << 2) + FORMULA,
+    EQUATIONAL_LIT_NEG  = (10 << 2) + FORMULA
 
 };
 const uintptr_t FORMULA_MASK = 0x3;
 
 /**********************************************************
- *  ast_node is inherited by all possible nodes, even those
- *  without children. The struct simply stores a pointer,
- *  and uses this pointer to identify the type of the
- *  inheriting class
- *
- *  In the case of terms, this pointer also stores the
- *  address of a descriptor struct, which identifies a
- *  unique function,predicate, constant or varaible.
- *
- *  The type is obtained via a call to
- *  getType(), and the address of the descriptor is obtained
- *  by getNode().
- *
- *  The use of a full pointer to store the type in the
- *  case of a formula is not important, as padding/overhead
- *  will likely prevent any improvement
+ *  A wrapper around node_ptr to allow for simpler use
+ *  and management
  *********************************************************/
-struct ast_node{
-    inline ast_node_type getType();
-    inline ast_node* getNode();
-
-    //constructors
-    ast_node(ast_node_type t);
-    ast_node(ast_node_type t, ast_node* n);
-private:
-    //storage of the descriptor is shared with the
-    //descriptor's type
-    ast_node* m_node;
+struct child {
+    node_ptr child_ptr;
+    inline node_type getType();
+    inline void setType(node_type t);
+    inline node_ptr getPointer();
+    inline uint getArrity();
 };
-
-struct negated_formula : ast_node{
-    ast_node* m_formula;
-    negated_formula(ast_node* f);
-};
-
-struct quantified_formula : ast_node{
-    ast_node* m_variable;
-    ast_node* m_formula;
-    quantified_formula(ast_node_type t, ast_node* v, ast_node* f);
-};
-
-struct connective : ast_node{
-    ast_node* m_left_formula;
-    ast_node* m_right_formula;
-    connective(ast_node_type t, ast_node* l, ast_node* r);
-};
-
-struct equational_literal : ast_node{
-    ast_node* m_left_term;
-    ast_node* m_right_term;
-    equational_literal(ast_node_type t, ast_node* l, ast_node* r);
-};
-
-//  Note: A predicate is implemented as a term that
-//  appears where a subformula usually would
 
 /**********************************************************
- *  Any term is represented by an array of these
- *  structs. The end() pointers are used like STL end
- *  iterators
+ *  Only one per a symbol, etc - not important during
+ *  the actual proving, so generated symbols (Skolem
+ *  constant/functions) need only be pointers
  *********************************************************/
-struct term : ast_node{
-    term** m_term;
-    term** m_end;
-
-    //inline term* next(){return this + 1;}
-    inline term** begin(){return m_term;}
-    inline term** end(){return m_end;}
-    inline term* child(int n){return m_end != this ? m_term[n] : nullptr;}
-
-    term(ast_node* d); //create term from descriptor
-    term(ast_node* d, term** t, term** e); //create term from subterms
-};
-
-/**********************************************************
- *  A descriptor of a variable
- **********************************************************/
-struct variable_descriptor : ast_node{
+struct descriptor {
     std::string name;
-    variable_descriptor(std::string s);
+    uint arrity;
+
+    descriptor(std::string& s);
+    descriptor(std::string& s, int i);
 };
 
-/**********************************************************
- *  A descriptor of a constant
- **********************************************************/
-struct constant_descriptor : ast_node{
-    std::string name;
-    constant_descriptor(std::string s);
-};
+child* new_function(descriptor* d, int i, child** c );
+child* new_function(descriptor* d, child** c );
 
-/**********************************************************
- *  A descriptor of a function
- **********************************************************/
-struct function_descriptor : ast_node{
-    std::string name;
-    int arity;
-    function_descriptor(std::string s, int a);
-};
+child* new_predicate(descriptor* d, child** c );
+child* new_predicate(descriptor* d, int i, child** c );
 
-/**********************************************************
- *  A descriptor of a predicate
- **********************************************************/
-struct predicate_descriptor : ast_node{
-    std::string name;
-    int arity;
-    predicate_descriptor(std::string s, int a);
-};
+child* new_constant(descriptor* d);
+child* new_variable(descriptor* d);
 
-/**********************************************************
- *  A linear representation of a term, used as the key in
- *  shared term datastructure shared_term_bank.hpp
- **********************************************************/
-struct flat_term : ast_node{
-    int length();
-    inline ast_node* begin(){ return (ast_node*)(this + 1);}
-    flat_term();
-};
+child* new_negated_formula(child* f);
+child* new_predicate();
+child* new_connective(child* f, node_type t,child* f);
+child* new_quantified(node_type t, descriptor* d, child* f);
+child* new_equational_lit(child* lt, node_type t, child* rt);
 
 }//END Namesplace fol
 

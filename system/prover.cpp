@@ -4,14 +4,13 @@ using namespace fol;
 
 class Prover
 {
-    SharedTermBank shr;
-    SymbolTable sym;
+    SharedTermBank shared_term_bank;
+    SymbolTable symbol_table;
 
     std::vector<ast_node*> formulas;
     std::vector<clause> clauses;
     std::unordered_set<clause> passive;
     std::unordered_set<clause> current;
-    std::unordered_set<clause> active;
     std::unordered_set<clause> active;
 
 public:

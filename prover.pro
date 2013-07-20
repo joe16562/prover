@@ -10,7 +10,7 @@ SOURCES += main.cpp \
     murmurhash/murmurhash.cpp \
     fol/symbol_table.cpp \
     system/prover.cpp \
-    fol/clausify.cpp
+    fol/clausification.cpp
 
 HEADERS += \
     fol/primitive_logic_types.h \

@@ -23,8 +23,8 @@ enum traversal_enum{
 };
 
 template<typename f>
-for_each_node(ast_node* r){
-    switch (r.getType()){
+for_each_node(child* r){
+    switch (r->getType()){
     case FUNCTION:
     case PREDICATE:
         f(r, FIRST);
@@ -63,7 +63,8 @@ for_each_node(ast_node* r){
         f(r, LAST);
         break;
 
-    case EQUATIONAL_LIT:
+    case EQUATIONAL_LIT_POS:
+    case EQUATIONAL_LIT_NEG:
         f(r, FIRST);
         for_each_node<f>( ((equational_literal*)r).m_left_term);
         for_each_node<f>( ((equational_literal*)r).m_right_term);

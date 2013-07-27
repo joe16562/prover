@@ -11,7 +11,6 @@
  *
  ***********************************************/
 
-#include "primitive_logic_types.h"
-
+#include "primitive_logic_types.h" //automatically excluded?
 
 #endif // PRIMITIVE_LOGIC_TYPES_INL_H

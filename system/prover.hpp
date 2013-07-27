@@ -4,19 +4,29 @@
 #include "parser.hpp"
 
 #include "../fol/shared_term_bank.h"
-#include "../fol/symbol_table.hpp"
 #include "../fol/clausification.hpp"
 
-#include <unordered_set>
 #include <queue>
+#include <unordered_set>
+#include <unordered_map>
 
+typedef std::unordered_map<std::string,uintptr_t> SymbolTable; // names->id
+typedef std::unordered_map<unintptr_t,uintptr_t> LookupTable;  // id->arity
+typedef std::vector<child*> FormulaList;
 
 using namespace fol;
 
 class Prover
-{
-    SharedTermBank shr;
-    SymbolTable sym;
+{   
+    // Memebers to manage
+    SharedTermBank shared_term_bank;
+    SymbolTable constants;
+    SymbolTable variables;
+    SymbolTable functions;
+    SymbolTable predicates;
+    LookupTable arrities;
+    FormulaList* formulae;
+    uintptr_t& next_id;
 
     std::vector<clause> clauses;
     std::unordered_set<clause> passive;

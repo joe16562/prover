@@ -18,6 +18,7 @@
 #include "utilities.hpp"
 
 #include <vector>
+#include <unordered_set>
 
 namespace fol {
 //  a clause is simply a vector of predicates and equality

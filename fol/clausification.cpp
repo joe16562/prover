@@ -4,11 +4,6 @@
 namespace fol {
 
 /**********************************************************
- *  This file make suse of the for_each_node template in
- *  utilities.hpp
- *********************************************************/
-
-/**********************************************************
  *  Copies an ast, used during conversion to cnf, all terms
  *  have been replaced by descriptors at this point
  *********************************************************/
@@ -18,12 +13,14 @@ child* copy(const child* child_to_copy){
     case NEGATED_FORMULA: //recursive copy of subtree
         return new_negated_formula(
                     copy(child_to_copy[1].getSubFormula()));
+        break;
 
     case PREDICATE: //non-recursive copy because of shared terms
         return new_predicate(
                     child_to_copy[0].getDescriptor(),
                     child_to_copy[1].getArrity(),
                     &child_to_copy[2]);
+        break;
 
     case CONNECTIVE_OR: //recursive copy of subtrees
     case CONNECTIVE_AND:
@@ -34,14 +31,25 @@ child* copy(const child* child_to_copy){
                     child_to_copy[0].getType(),
                     copy(child_to_copy[2].getSubFormula())
                 );
+        break;
 
     case QUANTIFIER_EXI:
     case QUANTIFIER_UNI:
         return new_quantified(
                     child_to_copy[0].getType(),
-                child_to_copy[1].getSubTerm(),
-                child_to_copy[2].getSubFormula()
+                    child_to_copy[0].getDescriptor(),
+                    child_to_copy[1].getSubFormula()
                 );
+        break;
+
+    case EQUATIONAL_LIT_NEG:
+    case EQUATIONAL_LIT_POS:
+        return new_equational_lit(
+                    child_to_copy[0].getSubTerm(),
+                    child_to_copy[0].getType(),
+                child_to_copy[1].getSubTerm()
+                );
+        break;
 
     case FUNCTION:
     case CONSTANT:
@@ -49,6 +57,28 @@ child* copy(const child* child_to_copy){
         assert(term->getType() != FUNCTION
                || term->getType() != VARIABLE
                || term->getType() != CONSTANT);
+        break;
+    default:
+        assert(false);
+    }
+}
+
+child* standardise_variables(const FormulaList* formulae, uintptr_t& next_id){
+    std::unordered_set<uintptr_t> used_variables;
+    for(auto formula_it = formulae->begin(); formula_it != formulae->end(); formula_it++)
+    {
+        child* formula = *formula_it;
+        switch(formula->getType()){
+        case VARIABLE: //check if it's been used
+            if(used_variables.insert(id).second == true){
+                // variable is new
+            } else {
+                formula->setDescriptor(next_id);
+                next_id += 4;
+            }
+
+
+        }
     }
 }
 
@@ -70,28 +100,6 @@ child* copy(const child* child_to_copy){
     EQUATIONAL_LIT  = (9 << 2) + FORMULA
 
     */
-
-struct copier{
-    std::vector<ast_node*> stack;
-
-    void operator()(ast_node* n, traversal_enum t){
-        if(t == FIRST) return;
-        switch(n->getType()){
-        //function can only be a predicate or function in the
-        //shared term bank
-        case FUNCTION:
-            stack.push_back(n);
-
-        }
-
-    }
-};
-
-struct deleter{
-    void operator(){
-
-    }
-};
 
 struct reducer{
     void operator(){
@@ -120,6 +128,6 @@ struct distributer{
 
 
 
-void clausify(std::vector<ast_node*>& f,std::vector<clause>& c, SymbolTable& sym);
+void clausify(FormulaList* formula,ClauseList* c, );
 
 }

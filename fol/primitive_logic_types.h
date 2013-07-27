@@ -18,6 +18,7 @@
  *********************************************************/
 
 #include <cstdint>
+#include <vector> //for defintion of FormulaList
 
 /**********************************************************
  *  This namespace contains low level types and function
@@ -39,20 +40,22 @@ struct child;
  *  ideal)
  *********************************************************/
 
-typedef child formula[2];
-typedef child* predicate;
-typedef child* function;
-typedef child quantified_formula[3];
-typedef child connective[3];
-typedef int constant ;
-typedef int variable;
+typedef child formula[2];             // Type, Formula
+typedef child quantified_formula[3];  // Type, Variable, Formula
+typedef child connective[3];          // Type, Formula, Formula
+typedef child equational_lit[3];      // Type, Id, Id
+typedef child constant[1];            // Type/Id
+typedef child variable[1];            // Type/Id
+typedef child* predicate;             // Type/Id, Arrity, Terms
+typedef child* function;              // Type/Id, Arrity, Terms
 
 /**********************************************************
  *  A descriptor provides a unique reference to term/etc,
  *  while the other types only represent instances
  *********************************************************/
 
-struct descriptor;
+//struct descriptor;
+typedef uintptr_t descriptor;
 
 typedef union {
     child* chd;
@@ -103,45 +106,31 @@ const uintptr_t FORMULA_MASK = 0x3;
  *  and management
  *********************************************************/
 struct child {
-    union{
-        child* next;
-        descriptor* des;
-    } pointer_union;
+    child* next;
 
     inline node_type getType(){
-        node_type t = ((uintptr_t)pointer_union.des) & FORMULA;
-        return (t != 3) ? t : (node_type)pointer_union.next;
+        node_type t = ((uintptr_t)next) & FORMULA;
+        return (t != 3) ? t : (node_type)next;
     }
 
     inline void setType(node_type t);
 
     inline child* getSubFormula(){
-        return pointer_union.next;}
+        return next;}
 
     inline child* getSubTerm(){
         return (child*)
-                (((uintptr_t)pointer_union.next) & ~FORMULA_MASK);}
+                (((uintptr_t)next) & ~FORMULA_MASK);}
 
-    inline descriptor* getDescriptor(){
-        return (descriptor*)
-                (((uintptr_t)pointer_union.des) & ~FORMULA_MASK);}
+    inline uintptr_t getDescriptor(){
+        return (((uintptr_t)next) & ~FORMULA_MASK);}
 
-    inline unsigned int getArrity(){
-            return (uintptr_t)pointer_union.next;}
+    inline uintptr_t setDescriptor(uintptr_t id){
+        next = (((uintptr_t)next) & FORMULA_MASK) | id;}
 
-};
+    inline uintptr_t getArrity(){
+            return (uintptr_t)next;}
 
-/**********************************************************
- *  Only one per a symbol, etc - not important during
- *  the actual proving, so generated symbols (Skolem
- *  constant/functions) need only be pointers
- *********************************************************/
-struct descriptor {
-    std::string name;
-    uint arrity;
-
-    descriptor(std::string& s);
-    descriptor(std::string& s, unsigned int i);
 };
 
 child* new_function(const descriptor* d, unsigned int i, const child** c );
@@ -157,6 +146,8 @@ child* new_negated_formula(const child* f);
 child* new_connective(const child* f, node_type t,const child* f);
 child* new_quantified(node_type t, const descriptor* d, const child* f);
 child* new_equational_lit(const child* lt, node_type t, const child* rt);
+
+typedef std::vector<child*> FormulaList;
 
 }//END Namesplace fol
 

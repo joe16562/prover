@@ -86,7 +86,7 @@ child* SharedTermBank::insert(child* term){
 
     case FUNCTION:
         // Insert subterms, replacing them with the shared term
-        for(auto it = 0; it != term[1].getArrity(); it++ )
+        for(auto it = &term[2]; it != term[1].getArrity(); it++ )
             term[it] = insert(term[it]);
         //FALL THROUGH
 
@@ -94,9 +94,9 @@ child* SharedTermBank::insert(child* term){
     case VARIABLE:
     { // Prevent skipped intialization of it
         auto it = lookup_table.insert(term);
-        if(it->first != term){ // A shared term already exists
-            delete term; //(non recursive - subterms are all in lookup_table)
-            return it->first; //return the shared copy
+        if(it->second == false){ // A shared term already exists
+            delete[] term; //(non recursive - subterms are all in lookup_table)
+            return *(it->first); //return the shared copy
         }
         else // Term has been inserted
             return term;
@@ -107,6 +107,7 @@ child* SharedTermBank::insert(child* term){
         assert(term->getType() == FUNCTION
                || term->getType() == VARIABLE
                || term->getType() == CONSTANT);
+        break;
     }
 }
 

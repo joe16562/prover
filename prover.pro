@@ -9,7 +9,8 @@ SOURCES += main.cpp \
     system/parser.cpp \
     murmurhash/murmurhash.cpp \
     system/prover.cpp \
-    fol/clausification.cpp
+    fol/clausification.cpp \
+    fol/substitutions.cpp
 
 HEADERS += \
     fol/primitive_logic_types.h \
@@ -19,7 +20,8 @@ HEADERS += \
     system/parser.hpp \
     murmurhash/murmurhash.hpp \
     system/prover.hpp \
-    fol/clausification.hpp
+    fol/clausification.hpp \
+    fol/substitutions.hpp
 
 QMAKE_CXXFLAGS += -std=c++11
 

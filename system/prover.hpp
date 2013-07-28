@@ -32,11 +32,13 @@ class Prover
     std::unordered_set<clause> passive;
     std::unordered_set<clause> current;
     std::unordered_set<clause> active;
-    std::unordered_set<clause> active;
 
 public:
     Prover(const char* problem_file);
-    bool givenClause();
+
+    uintptr_t GetNextTermId(){next_id += 4; return id - 4;}
+
+    bool GivenClause();
 };
 
 #endif // PROVER_HPP

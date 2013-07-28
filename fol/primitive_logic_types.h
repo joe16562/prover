@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <vector> //for defintion of FormulaList
+#include <unordered_set>
 
 /**********************************************************
  *  This namespace contains low level types and function
@@ -115,29 +116,69 @@ struct child {
 
     inline void setType(node_type t);
 
-    inline child* getSubFormula(){
-        return next;}
+    inline child* getSubFormula() const{
+        return (this + 1)->next;}
 
-    inline child* getSubTerm(){
+    inline child* getSubTerm() const{
         return (child*)
                 (((uintptr_t)next) & ~FORMULA_MASK);}
 
-    inline uintptr_t getDescriptor(){
+    inline uintptr_t getDescriptor() const{
         return (((uintptr_t)next) & ~FORMULA_MASK);}
 
     inline uintptr_t setDescriptor(uintptr_t id){
         next = (((uintptr_t)next) & FORMULA_MASK) | id;}
 
-    inline uintptr_t getArrity(){
-            return (uintptr_t)next;}
+    inline uintptr_t getArrity() const{
+            return (uintptr_t)((this + 1)->next);}
+
+    inline child* getNegatedFormula() const{
+        return (this + 1)->next;
+    }
+
+    inline child* getLeftSubFormula() const{
+        return (this+1)->next;
+    }
+
+    inline child* getRightSubFormula() const{
+        return (this+2)->next;
+    }
+
+    inline child* getLeftSubTerm() const{
+        return (this + 1)->getSubterm();
+    }
+
+    inline child* getRightSubTerm() const{
+        return (this + 2)->getSubTerm();
+    }
+
+    inline void setLeftSubTerm(child* l) const{
+        (this + 1)->next = l;
+    }
+
+    inline void setRightSubTerm(child* r) const{
+        (this + 2)->next = r;
+    }
+
+    inline child* getSubTermArray() const{
+        return (this + 2);
+    }
+
+    inline child* getBoundVariable() const{
+        return (this + 1)->getSubTerm();
+    }
+
+    inline child* getBoundFormula() const{
+        return (this + 2)->next;
+    }
 
 };
 
-child* new_function(const descriptor* d, unsigned int i, const child** c );
-child* new_function(const descriptor* d, const child** c );
+child* new_function(const descriptor* d, unsigned int i, const child* c );
+child* new_function(const descriptor* d, const child* c );
 
-child* new_predicate(const descriptor* d, const child** c );
-child* new_predicate(const descriptor* d, unsigned int i, const child** c );
+child* new_predicate(const descriptor* d, const child* c );
+child* new_predicate(const descriptor* d, unsigned int i, const child* c );
 
 child* new_constant(const descriptor* d);
 child* new_variable(const descriptor* d);
@@ -148,6 +189,9 @@ child* new_quantified(node_type t, const descriptor* d, const child* f);
 child* new_equational_lit(const child* lt, node_type t, const child* rt);
 
 typedef std::vector<child*> FormulaList;
+typedef std::vector<child*> Clause;
+typedef std::vector<Clause> ClauseList;
+typedef std::unordered_set<Clause> ClauseSet;
 
 }//END Namesplace fol
 

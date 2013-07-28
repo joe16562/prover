@@ -13,8 +13,8 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    prover proof(argv[1]);
-    proof.given_clause();
+    prover proof_context(argv[1]);
+    proof_context.given_clause();
 
     return 0;
 }

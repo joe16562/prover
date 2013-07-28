@@ -43,7 +43,7 @@ class TermEqualityPredicate{
     bool operator() (child* a, child* b){
         if(a->getType() != b->getType())
             return false;
-        if( (a->getType == FUNCTION) || (a->getType == PREDICATE))
+        if( (a->getType() == FUNCTION) || (a->getType() == PREDICATE))
             for(int i = 0; i < a[1].getArrity(); i++)
                 if(a[i] != b[i]) return false;
         return true;

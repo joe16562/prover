@@ -20,7 +20,7 @@ public:
 
 Prover::Prover(const char* problem_file)
 {
-    parser psr(shr,sym,formulas,problem_file);
+    Parser psr(shr,sym,formulas,problem_file);
     psr();
 
     clausify(formulas,clauses,sym);

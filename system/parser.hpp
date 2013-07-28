@@ -23,7 +23,7 @@ typedef std::unordered_map<std::string,uintptr_t> SymbolTable; // names->id
 typedef std::unordered_map<unintptr_t,uintptr_t> LookupTable;  // id->arity
 typedef std::vector<child*> FormulaList;
 
-class parser
+class Parser
 {
     using namespace fol;
 
@@ -38,7 +38,7 @@ class parser
     std::istream& input;
 
 public:
-    parser(SharedTermBank& shr, SymbolTable& variables, SymbolTable& constants,
+    Parser(SharedTermBank& shr, SymbolTable& variables, SymbolTable& constants,
            SymbolTable& functions, SymbolTable& predicates, LookupTable& arrities,
             uintptr_t& next_id, const char* problem_file);
 

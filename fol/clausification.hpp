@@ -15,17 +15,17 @@
  *********************************************************/
 
 #include "primitive_logic_types.h"
+#include "substitutions.hpp"
 #include "utilities.hpp"
+#include "../system/prover.hpp"
 
 #include <vector>
 #include <unordered_set>
+#include <stack>
 
 namespace fol {
-//  a clause is simply a vector of predicates and equality
-//  literals, potentailly negated
-typedef std::vector<child*> clause;
 
-void clausify(std::vector<ast_node*>& f,std::vector<clause>& c, SymbolTable& sym);
+void ConvertToCnf(FormulaList formulae,ClauseList clauses, Prover& proof_context);
 
 }
 
